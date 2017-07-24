@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>lesson1-by-shawn.xie</title>
+        <!--引入Three.js-->
+        <script src="three.min.js"></script>
+        <script type="text/javascript">
+            //开启Three.js渲染器
+             var renderer;
+             var sphereArr = [];//声明全局变量（对象）
+             var distX;
+             var distY;
+             var moveX;
+             var moveY;
+             var inSelectSection = false;
+             var touchMoveItem;
+             var mouseDownControll = false;
+             function initThree() {
+                width = document.getElementById('canvas3d').clientWidth;//获取画布「canvas3d」的宽
+                height = document.getElementById('canvas3d').clientHeight;//获取画布「canvas3d」的高
+                renderer=new THREE.WebGLRenderer({antialias:true});//生成渲染器对象（属性：抗锯齿效果为设置有效）
+                renderer.setSize(width, height );//指定渲染器的高宽（和画布框大小一致）
+                raycaster = new THREE.Raycaster();  
+                mouse = new THREE.Vector2();  
+                document.addEventListener('mousemove', onDocumentMouseMove, false);
+                document.addEventListener('mousedown', onDocumentMouseDown, false); 
+                document.addEventListener('mouseup', onDocumentMouseUp, false);    
+                document.getElementById('canvas3d').appendChild(renderer.domElement);//追加 【canvas】 元素到 【canvas3d】 元素中。
+                renderer.setClearColor(0xFFFFFF, 1.0);//设置canvas背景色(clearColor)
+
+              }
+               //设置相机
+              var camera;
+              function initCamera() { 
+                camera = new THREE.PerspectiveCamera( 45, width / height , 1 , 5000 );//设置透视投影的相机,默认情况下相机的上方向为Y轴，右方向为X轴，沿着Z轴朝里（视野角：fov 纵横比：aspect 相机离视体积最近的距离：near 相机离视体积最远的距离：far）
+                camera.position.x = 0;  //设置相机的位置坐标
+                camera.position.y = 50; //设置相机的位置坐标
+                camera.position.z = 100;  //设置相机的位置坐标
+                camera.up.x = 0;  //设置相机的上为「x」轴方向
+                camera.up.y = 1;  //设置相机的上为「y」轴方向
+                camera.up.z = 0;  //设置相机的上为「z」轴方向
+                camera.lookAt( {x:0, y:0, z:0 } );//设置视野的中心坐标
+              }
+               //设置场景
+              var scene;
+              function initScene() {   
+                scene = new THREE.Scene();
+              }
+
+              //设置光源
+              var light;
+              function initLight() { 
+                light = new THREE.DirectionalLight(0xFFCC00, 1.0, 0);//设置平行光源
+                light.position.set( 200, 200, 200 );//设置光源向量
+                scene.add(light);// 追加光源到场景
+              }
+               //设置物体
+              var sphere;
+              function initObject(){ 
+              var loader = new THREE.TextureLoader();
+
+
+                loader.load(
+                  // resource URL
+                  'test.jpg',
+                  // Function when resource is loaded
+                  function ( texture ) {
+                    // do something with the texture
+                    var material = new THREE.MeshBasicMaterial( {
+                      map: texture
+                     } );
+                    for(var i = 0 ; i < 10; i ++){
+                      var sphere = new THREE.Mesh(
+                      new THREE.CubeGeometry(20,20,20),                //width,height,depth
+                      material //材质设定
+                      );
+                      sphere.rotation.y = (sphere.rotation.y + 0.01) % (Math.PI * 2);
+                      var positionFlag = Math.random()-0.5;
+                      var scaleParameter = 50;
+                      var x = positionFlag > 0 ? Math.random()*scaleParameter : 0-Math.random()*scaleParameter;
+                      var y = positionFlag > 0 ? Math.random()*scaleParameter : 0-Math.random()*scaleParameter;
+                      var z = positionFlag > 0 ? Math.random()*scaleParameter : 0-Math.random()*scaleParameter;
+                      scene.add(sphere);
+                      sphereArr.push(sphere);
+                      sphere.position.set(x,y,z);
+                    }
+                    renderer.clear(); 
+                    renderer.render(scene, camera);
+                    animation();
+                  },
+                  // Function called when download progresses
+                  function ( xhr ) {
+                    console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+                  },
+                  // Function called when download errors
+                  function ( xhr ) {
+                    console.log( 'An error happened' );
+                  }
+                ); 
+                console.log("222222")
+  
+  
+              }
+              function onDocumentMouseMove(event) {  
+                  event.preventDefault();  
+                  mouse.x = (event.clientX / 800) * 2 - 1;  
+                  mouse.y = -(event.clientY / 800) * 2 + 1;
+                  if(distX){
+                      moveX = mouse.x - distX;
+                      moveY = mouse.y - distY;  
+                      distX = mouse.x;
+                      distY = mouse.y;
+                  }
+
+
+              }
+              function onDocumentMouseDown(event) {
+                  if(!inSelectSection) return; 
+                  mouseDownControll = true; 
+                  event.preventDefault();  
+                  mouse.x = (event.clientX / 800) * 2 - 1;  
+                  mouse.y = -(event.clientY / 800) * 2 + 1;  
+                  distX = mouse.x;
+                  distY = mouse.y;
+              } 
+              function onDocumentMouseUp(event) {
+                  mouseDownControll = false; 
+                  distX = "";
+                  distY = "";
+                  moveX = "";
+                  moveY = "";
+              }       
+              function animation(){
+                  // for (var i = 0 ; i<sphereArr.length; i++) {
+                  //   // sphereArr[i].position.x -= -;
+                  //   sphereArr[i].rotation.y -= 0.03;
+                  //   if (sphereArr[i].position.x < -(width - 400)) sphereArr[i].position.x = 400;
+                  // };
+                   
+                  // console.log(mesh.position.x);
+                  renderer.render(scene, camera);
+                  requestAnimationFrame(animation);
+                  raycaster.setFromCamera(mouse, camera);  
+                  var intersects = raycaster.intersectObjects(scene.children);  
+                  if (intersects.length > 0) { 
+                    inSelectSection = true; 
+                    if(mouseDownControll)
+                       touchMoveItem ? '': touchMoveItem = intersects[0];
+                    else
+                       touchMoveItem = intersects[0];
+                    touchMoveItem.object.rotation.y -= 0.03;
+                    if(moveX){
+                      touchMoveItem.object.position.x += moveX*80;
+                      touchMoveItem.object.position.y += moveY*80;
+                    }
+                  } 
+                  else{
+                    inSelectSection = false;
+                    if(mouseDownControll){
+                      touchMoveItem.object.position.x += moveX*80;
+                      touchMoveItem.object.position.y += moveY*80;
+                    }
+                  }
+                  if(touchMoveItem)
+                    console.log(moveX+'*****'+moveY)
+              }
+              //执
+              //执行
+              function threeStart() {
+                initThree();
+                initCamera();
+                initScene();   
+                initLight();
+                initObject();
+              }
+
+        </script>
+        <style type="text/css">
+            div#canvas3d{
+                  border: none;
+                  cursor: move;
+                  width: 800px;
+                  height: 800px;
+                  background-color: #EEEEEE;
+                }
+        </style>
+    </head>
+
+    <body onload='threeStart();'>
+        <!--盛放canvas的容器-->
+        <div id="canvas3d"></div>
+    </body>
+</html>
